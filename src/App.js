@@ -1,5 +1,3 @@
-import logo from './logo.svg';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Book, FileText, Split, X, Plus, Highlighter, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -13,7 +11,7 @@ const BibleStudyApp = () => {
   const [splitMode, setSplitMode] = useState(false);
   const [highlights, setHighlights] = useState({});
   const [notes, setNotes] = useState({});
-  const [viewMode, setViewMode] = useState('chapter'); // 'chapter' or 'verse'
+  const [viewMode, setViewMode] = useState('chapter');
   const [selectedText, setSelectedText] = useState({ panel: null, text: '', verseRef: '' });
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
@@ -205,28 +203,45 @@ const BibleStudyApp = () => {
     const hasHighlight = highlights[verse.reference];
     const hasNote = notes[verse.reference];
     
-    const highlightColors = {
-      yellow: 'bg-yellow-200',
-      green: 'bg-green-200',
-      blue: 'bg-blue-200',
-      pink: 'bg-pink-200'
+    const highlightStyle = {
+      yellow: { backgroundColor: '#fef08a' },
+      green: { backgroundColor: '#bbf7d0' },
+      blue: { backgroundColor: '#bfdbfe' },
+      pink: { backgroundColor: '#fbcfe8' }
     };
 
     return (
       <div
         key={verse.reference}
-        className={`mb-2 p-2 rounded ${hasHighlight ? highlightColors[hasHighlight] : ''}`}
+        style={{
+          marginBottom: '8px',
+          padding: '8px',
+          borderRadius: '4px',
+          ...(hasHighlight ? highlightStyle[hasHighlight] : {})
+        }}
         onMouseUp={() => handleTextSelection(panel, verse.reference)}
       >
-        <span className="font-semibold text-blue-700">{verse.verse}</span>
-        <span className="ml-2">{verse.text}</span>
+        <span style={{ fontWeight: '600', color: '#1d4ed8' }}>{verse.verse}</span>
+        <span style={{ marginLeft: '8px' }}>{verse.text}</span>
         {hasNote && (
-          <div className="mt-1 p-2 bg-amber-50 border-l-4 border-amber-400 text-sm">
-            <div className="flex justify-between items-start">
-              <p className="text-gray-700">{notes[verse.reference]}</p>
+          <div style={{
+            marginTop: '4px',
+            padding: '8px',
+            backgroundColor: '#fffbeb',
+            borderLeft: '4px solid #f59e0b',
+            fontSize: '14px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <p style={{ color: '#374151' }}>{notes[verse.reference]}</p>
               <button
                 onClick={() => deleteNote(verse.reference)}
-                className="text-red-500 hover:text-red-700 ml-2"
+                style={{
+                  color: '#ef4444',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  marginLeft: '8px'
+                }}
               >
                 <X size={14} />
               </button>
@@ -245,7 +260,7 @@ const BibleStudyApp = () => {
       return (
         <iframe
           src={panelData.content}
-          className="w-full h-full border-0"
+          style={{ width: '100%', height: '100%', border: 0 }}
           title="PDF Viewer"
         />
       );
@@ -256,7 +271,7 @@ const BibleStudyApp = () => {
       
       if (viewMode === 'verse') {
         return (
-          <div className="space-y-1">
+          <div>
             {verses.map(v => renderVerse(v, panel))}
           </div>
         );
@@ -264,22 +279,25 @@ const BibleStudyApp = () => {
         // Chapter mode - continuous text
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
               {panelData.book} {panelData.chapter}
             </h2>
-            <div className="leading-relaxed">
+            <div style={{ lineHeight: '1.8' }}>
               {verses.map(v => (
                 <span key={v.reference}>
-                  <sup className="text-blue-600 font-semibold">{v.verse}</sup>
+                  <sup style={{ color: '#2563eb', fontWeight: '600' }}>{v.verse}</sup>
                   <span
-                    className={`${highlights[v.reference] ? `bg-${highlights[v.reference]}-200` : ''}`}
+                    style={highlights[v.reference] ? 
+                      { backgroundColor: highlights[v.reference] === 'yellow' ? '#fef08a' :
+                                        highlights[v.reference] === 'green' ? '#bbf7d0' :
+                                        highlights[v.reference] === 'blue' ? '#bfdbfe' : '#fbcfe8' } : {}}
                     onMouseUp={() => handleTextSelection(panel, v.reference)}
                   >
                     {v.text}
                   </span>{' '}
                   {notes[v.reference] && (
-                    <span className="inline-block">
-                      <span className="text-amber-600" title={notes[v.reference]}>📝</span>
+                    <span style={{ display: 'inline-block' }}>
+                      <span style={{ color: '#d97706' }} title={notes[v.reference]}>📝</span>
                     </span>
                   )}
                 </span>
@@ -291,22 +309,31 @@ const BibleStudyApp = () => {
     }
     
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af' }}>
         <p>No content loaded</p>
       </div>
     );
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      {/* Header */}
-      <div className="bg-blue-900 text-white p-4 shadow-lg">
-        <h1 className="text-2xl font-bold mb-3">Bible Study Desktop</h1>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f3f4f6' }}>
+      <div style={{ backgroundColor: '#1e3a8a', color: 'white', padding: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>Bible Study Desktop</h1>
         
-        <div className="flex gap-2 flex-wrap">
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded flex items-center gap-2"
+            style={{
+              backgroundColor: '#1e40af',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
           >
             <Book size={18} />
             Load Bible
@@ -314,9 +341,17 @@ const BibleStudyApp = () => {
           
           <button
             onClick={() => setSplitMode(!splitMode)}
-            className={`px-4 py-2 rounded flex items-center gap-2 ${
-              splitMode ? 'bg-green-600 hover:bg-green-500' : 'bg-blue-700 hover:bg-blue-600'
-            }`}
+            style={{
+              backgroundColor: splitMode ? '#16a34a' : '#1e40af',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
           >
             <Split size={18} />
             Split View
@@ -325,7 +360,17 @@ const BibleStudyApp = () => {
           {splitMode && (
             <button
               onClick={() => pdfInputRef.current?.click()}
-              className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded flex items-center gap-2"
+              style={{
+                backgroundColor: '#1e40af',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
             >
               <FileText size={18} />
               Load PDF
@@ -335,7 +380,14 @@ const BibleStudyApp = () => {
           <select
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value)}
-            className="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded text-white"
+            style={{
+              backgroundColor: '#1e40af',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer'
+            }}
           >
             <option value="chapter">Chapter View</option>
             <option value="verse">Verse View</option>
@@ -347,35 +399,44 @@ const BibleStudyApp = () => {
           type="file"
           accept=".txt"
           onChange={handleBibleUpload}
-          className="hidden"
+          style={{ display: 'none' }}
         />
         <input
           ref={pdfInputRef}
           type="file"
           accept=".pdf"
           onChange={handlePdfUpload}
-          className="hidden"
+          style={{ display: 'none' }}
         />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <div className="w-64 bg-white border-r flex flex-col overflow-hidden">
-          {/* Search */}
-          <div className="p-4 border-b">
-            <div className="flex gap-2">
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ width: '256px', backgroundColor: 'white', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="Search Bible..."
-                className="flex-1 px-3 py-2 border rounded"
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px'
+                }}
               />
               <button
                 onClick={handleSearch}
-                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
               >
                 <Search size={18} />
               </button>
@@ -383,10 +444,10 @@ const BibleStudyApp = () => {
           </div>
           
           {/* Search Results / Book Selection */}
-          <div className="flex-1 overflow-y-auto">
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             {searchResults.length > 0 ? (
-              <div className="p-2">
-                <h3 className="font-semibold mb-2 px-2">
+              <div style={{ padding: '8px' }}>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px', padding: '0 8px' }}>
                   Search Results ({searchResults.length})
                 </h3>
                 {searchResults.map(verse => (
@@ -397,27 +458,52 @@ const BibleStudyApp = () => {
                       setSearchResults([]);
                       setSearchQuery('');
                     }}
-                    className="w-full text-left p-2 hover:bg-blue-50 rounded mb-1"
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginBottom: '4px'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <div className="font-semibold text-sm text-blue-700">
+                    <div style={{ fontWeight: '600', fontSize: '14px', color: '#1d4ed8' }}>
                       {verse.reference}
                     </div>
-                    <div className="text-xs text-gray-600 line-clamp-2">
+                    <div style={{ fontSize: '12px', color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                       {verse.text}
                     </div>
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="p-2">
-                <h3 className="font-semibold mb-2 px-2">Books</h3>
+              <div style={{ padding: '8px' }}>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px', padding: '0 8px' }}>Books</h3>
                 {books.map(book => (
                   <button
                     key={book}
                     onClick={() => setLeftPanel({ ...leftPanel, type: 'bible', book, chapter: 1 })}
-                    className={`w-full text-left px-3 py-2 rounded mb-1 ${
-                      leftPanel.book === book ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
-                    }`}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      border: 'none',
+                      backgroundColor: leftPanel.book === book ? '#dbeafe' : 'transparent',
+                      color: leftPanel.book === book ? '#1e40af' : 'inherit',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      marginBottom: '4px'
+                    }}
+                    onMouseOver={(e) => {
+                      if (leftPanel.book !== book) e.currentTarget.style.backgroundColor = '#f3f4f6';
+                    }}
+                    onMouseOut={(e) => {
+                      if (leftPanel.book !== book) e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                   >
                     {book}
                   </button>
@@ -426,19 +512,21 @@ const BibleStudyApp = () => {
             )}
           </div>
         </div>
-
+        
         {/* Main Content Area */}
-        <div className="flex-1 flex">
-          {/* Left Panel */}
-          <div className={`${splitMode ? 'w-1/2' : 'w-full'} flex flex-col bg-white`}>
-            {/* Panel Controls */}
+        <div style={{ flex: 1, display: 'flex' }}>
+          <div style={{ width: splitMode ? '50%' : '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
             {leftPanel.book && (
-              <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <select
                     value={leftPanel.book}
                     onChange={(e) => setLeftPanel({ ...leftPanel, book: e.target.value, chapter: 1 })}
-                    className="px-3 py-1 border rounded"
+                    style={{
+                      padding: '4px 12px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px'
+                    }}
                   >
                     {books.map(book => (
                       <option key={book} value={book}>{book}</option>
@@ -447,7 +535,15 @@ const BibleStudyApp = () => {
                   
                   <button
                     onClick={() => navigateChapter('left', 'prev')}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    style={{
+                      padding: '4px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <ChevronLeft size={20} />
                   </button>
@@ -456,51 +552,95 @@ const BibleStudyApp = () => {
                     type="number"
                     value={leftPanel.chapter}
                     onChange={(e) => setLeftPanel({ ...leftPanel, chapter: parseInt(e.target.value) || 1 })}
-                    className="w-16 px-2 py-1 border rounded text-center"
+                    style={{
+                      width: '64px',
+                      padding: '4px 8px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '4px',
+                      textAlign: 'center'
+                    }}
                     min="1"
                   />
                   
                   <button
                     onClick={() => navigateChapter('left', 'next')}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    style={{
+                      padding: '4px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <ChevronRight size={20} />
                   </button>
                 </div>
                 
                 {selectedText.panel === 'left' && selectedText.text && (
-                  <div className="flex gap-2">
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       onClick={() => addHighlight('yellow')}
-                      className="p-2 bg-yellow-200 hover:bg-yellow-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#fef08a',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Yellow Highlight"
                     >
                       <Highlighter size={16} />
                     </button>
                     <button
                       onClick={() => addHighlight('green')}
-                      className="p-2 bg-green-200 hover:bg-green-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#bbf7d0',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Green Highlight"
                     >
                       <Highlighter size={16} />
                     </button>
                     <button
                       onClick={() => addHighlight('blue')}
-                      className="p-2 bg-blue-200 hover:bg-blue-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#bfdbfe',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Blue Highlight"
                     >
                       <Highlighter size={16} />
                     </button>
                     <button
                       onClick={() => addHighlight('pink')}
-                      className="p-2 bg-pink-200 hover:bg-pink-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#fbcfe8',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Pink Highlight"
                     >
                       <Highlighter size={16} />
                     </button>
                     <button
                       onClick={() => removeHighlight(selectedText.verseRef)}
-                      className="p-2 bg-gray-200 hover:bg-gray-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#e5e7eb',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Remove Highlight"
                     >
                       <X size={16} />
@@ -510,7 +650,13 @@ const BibleStudyApp = () => {
                         setCurrentNote(notes[selectedText.verseRef] || '');
                         setShowNoteDialog(true);
                       }}
-                      className="p-2 bg-amber-200 hover:bg-amber-300 rounded"
+                      style={{
+                        padding: '8px',
+                        backgroundColor: '#fde68a',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
                       title="Add Note"
                     >
                       <StickyNote size={16} />
@@ -520,21 +666,25 @@ const BibleStudyApp = () => {
               </div>
             )}
             
-            <div className="flex-1 overflow-y-auto p-6">
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
               {renderPanelContent('left')}
             </div>
           </div>
 
           {/* Right Panel */}
           {splitMode && (
-            <div className="w-1/2 flex flex-col bg-white border-l">
+            <div style={{ width: '50%', display: 'flex', flexDirection: 'column', backgroundColor: 'white', borderLeft: '1px solid #e5e7eb' }}>
               {rightPanel.type === 'bible' && rightPanel.book && (
-                <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <select
                       value={rightPanel.book}
                       onChange={(e) => setRightPanel({ ...rightPanel, book: e.target.value, chapter: 1 })}
-                      className="px-3 py-1 border rounded"
+                      style={{
+                        padding: '4px 12px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px'
+                      }}
                     >
                       {books.map(book => (
                         <option key={book} value={book}>{book}</option>
@@ -543,7 +693,15 @@ const BibleStudyApp = () => {
                     
                     <button
                       onClick={() => navigateChapter('right', 'prev')}
-                      className="p-1 hover:bg-gray-200 rounded"
+                      style={{
+                        padding: '4px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <ChevronLeft size={20} />
                     </button>
@@ -552,13 +710,27 @@ const BibleStudyApp = () => {
                       type="number"
                       value={rightPanel.chapter}
                       onChange={(e) => setRightPanel({ ...rightPanel, chapter: parseInt(e.target.value) || 1 })}
-                      className="w-16 px-2 py-1 border rounded text-center"
+                      style={{
+                        width: '64px',
+                        padding: '4px 8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px',
+                        textAlign: 'center'
+                      }}
                       min="1"
                     />
                     
                     <button
                       onClick={() => navigateChapter('right', 'next')}
-                      className="p-1 hover:bg-gray-200 rounded"
+                      style={{
+                        padding: '4px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <ChevronRight size={20} />
                     </button>
@@ -569,7 +741,15 @@ const BibleStudyApp = () => {
                       setRightPanel({ type: null, content: null, book: '', chapter: 1 });
                       setSplitMode(false);
                     }}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    style={{
+                      padding: '4px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <X size={20} />
                   </button>
@@ -577,41 +757,69 @@ const BibleStudyApp = () => {
               )}
               
               {rightPanel.type === 'pdf' && (
-                <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-                  <span className="font-semibold">PDF Document</span>
+                <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontWeight: '600' }}>PDF Document</span>
                   <button
                     onClick={() => {
                       setRightPanel({ type: null, content: null, book: '', chapter: 1 });
                     }}
-                    className="p-1 hover:bg-gray-200 rounded"
+                    style={{
+                      padding: '4px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <X size={20} />
                   </button>
                 </div>
               )}
               
-              <div className="flex-1 overflow-y-auto p-6">
+              <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
                 {renderPanelContent('right')}
               </div>
               
               {!rightPanel.type && (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                  <p className="mb-4">Right panel empty</p>
-                  <div className="flex gap-2">
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                  <p style={{ marginBottom: '16px' }}>Right panel empty</p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       onClick={() => {
                         if (books.length > 0) {
                           setRightPanel({ type: 'bible', book: books[0], chapter: 1 });
                         }
                       }}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                      style={{
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
                     >
                       <Book size={18} />
                       Load Bible Passage
                     </button>
                     <button
                       onClick={() => pdfInputRef.current?.click()}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                      style={{
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
                     >
                       <FileText size={18} />
                       Load PDF
@@ -624,23 +832,51 @@ const BibleStudyApp = () => {
         </div>
       </div>
 
-      {/* Note Dialog */}
       {showNoteDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-lg font-semibold mb-3">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '384px',
+            maxWidth: '100%'
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '12px' }}>
               Add Note - {selectedText.verseRef}
             </h3>
             <textarea
               value={currentNote}
               onChange={(e) => setCurrentNote(e.target.value)}
-              className="w-full h-32 p-3 border rounded resize-none"
+              style={{
+                width: '100%',
+                height: '128px',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                resize: 'none'
+              }}
               placeholder="Enter your note here..."
             />
-            <div className="flex gap-2 mt-4">
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
               <button
                 onClick={saveNote}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
               >
                 Save
               </button>
@@ -649,7 +885,15 @@ const BibleStudyApp = () => {
                   setShowNoteDialog(false);
                   setCurrentNote('');
                 }}
-                className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#d1d5db',
+                  color: '#374151',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
               >
                 Cancel
               </button>
