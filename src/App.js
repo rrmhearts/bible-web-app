@@ -15,8 +15,10 @@ const BibleStudyApp = () => {
   const [selectedText, setSelectedText] = useState({ panel: null, text: '', verseRef: '' });
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [currentNote, setCurrentNote] = useState('');
+  const [searchHighlight, setSearchHighlight] = useState(null);
   const fileInputRef = useRef(null);
   const pdfInputRef = useRef(null);
+  const verseRefs = useRef({});
 
   // Load saved data from storage
   useEffect(() => {
@@ -202,6 +204,7 @@ const BibleStudyApp = () => {
   const renderVerse = (verse, panel) => {
     const hasHighlight = highlights[verse.reference];
     const hasNote = notes[verse.reference];
+    const isSearchHighlight = searchHighlight === verse.reference;
     
     const highlightStyle = {
       yellow: { backgroundColor: '#fef08a' },
@@ -213,11 +216,16 @@ const BibleStudyApp = () => {
     return (
       <div
         key={verse.reference}
+        ref={(el) => {
+          if (el) verseRefs.current[verse.reference] = el;
+        }}
         style={{
           marginBottom: '8px',
           padding: '8px',
           borderRadius: '4px',
-          ...(hasHighlight ? highlightStyle[hasHighlight] : {})
+          transition: 'background-color 0.3s ease',
+          ...(isSearchHighlight ? { backgroundColor: '#fef3c7', boxShadow: '0 0 0 3px #fbbf24' } : {}),
+          ...(hasHighlight && !isSearchHighlight ? highlightStyle[hasHighlight] : {})
         }}
         onMouseUp={() => handleTextSelection(panel, verse.reference)}
       >
@@ -283,14 +291,33 @@ const BibleStudyApp = () => {
               {panelData.book} {panelData.chapter}
             </h2>
             <div style={{ lineHeight: '1.8' }}>
-              {verses.map(v => (
-                <span key={v.reference}>
+              {verses.map(v => {
+                const isSearchHighlight = searchHighlight === v.reference;
+                return (
+                  <span 
+                    key={v.reference}
+                    ref={(el) => {
+                      if (el) verseRefs.current[v.reference] = el;
+                    }}
+                    style={{
+                      display: 'inline',
+                      transition: 'all 0.3s ease',
+                      ...(isSearchHighlight ? {
+                        backgroundColor: '#fef3c7',
+                        boxShadow: '0 0 0 3px #fbbf24',
+                        padding: '2px 4px',
+                        borderRadius: '4px'
+                      } : {})
+                    }}
+                  >
                   <sup style={{ color: '#2563eb', fontWeight: '600' }}>{v.verse}</sup>
                   <span
-                    style={highlights[v.reference] ? 
+                      style={{
+                        ...(highlights[v.reference] && !isSearchHighlight ? 
                       { backgroundColor: highlights[v.reference] === 'yellow' ? '#fef08a' :
                                         highlights[v.reference] === 'green' ? '#bbf7d0' :
-                                        highlights[v.reference] === 'blue' ? '#bfdbfe' : '#fbcfe8' } : {}}
+                                            highlights[v.reference] === 'blue' ? '#bfdbfe' : '#fbcfe8' } : {})
+                      }}
                     onMouseUp={() => handleTextSelection(panel, v.reference)}
                   >
                     {v.text}
@@ -301,7 +328,8 @@ const BibleStudyApp = () => {
                     </span>
                   )}
                 </span>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -455,8 +483,17 @@ const BibleStudyApp = () => {
                     key={verse.reference}
                     onClick={() => {
                       setLeftPanel({ type: 'bible', book: verse.book, chapter: verse.chapter });
+                      setSearchHighlight(verse.reference);
                       setSearchResults([]);
                       setSearchQuery('');
+                      
+                      // Scroll to verse after a short delay to allow rendering
+                      setTimeout(() => {
+                        const element = verseRefs.current[verse.reference];
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 100);
                     }}
                     style={{
                       width: '100%',
@@ -521,7 +558,10 @@ const BibleStudyApp = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <select
                     value={leftPanel.book}
-                    onChange={(e) => setLeftPanel({ ...leftPanel, book: e.target.value, chapter: 1 })}
+                    onChange={(e) => {
+                      setLeftPanel({ ...leftPanel, book: e.target.value, chapter: 1 });
+                      setSearchHighlight(null);
+                    }}
                     style={{
                       padding: '4px 12px',
                       border: '1px solid #d1d5db',
@@ -551,7 +591,10 @@ const BibleStudyApp = () => {
                   <input
                     type="number"
                     value={leftPanel.chapter}
-                    onChange={(e) => setLeftPanel({ ...leftPanel, chapter: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => {
+                      setLeftPanel({ ...leftPanel, chapter: parseInt(e.target.value) || 1 });
+                      setSearchHighlight(null);
+                    }}
                     style={{
                       width: '64px',
                       padding: '4px 8px',
