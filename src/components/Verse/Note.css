@@ -1,0 +1,25 @@
+.note {
+  margin-top: 4px;
+  padding: 8px;
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  font-size: 14px;
+}
+
+.note-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.note-text {
+  color: #374151;
+}
+
+.delete-note {
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 8px;
+}

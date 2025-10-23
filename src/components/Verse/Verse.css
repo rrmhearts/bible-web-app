@@ -1,0 +1,70 @@
+.verse {
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.verse-number {
+  font-weight: 600;
+  color: #1d4ed8;
+  margin-right: 8px;
+}
+
+.verse-text {
+  display: inline;
+}
+
+.verse.search-highlight {
+  background-color: #fef3c7;
+  box-shadow: 0 0 0 3px #fbbf24;
+}
+
+.verse.yellow-highlight .verse-text {
+  background-color: #fef08a;
+}
+
+.verse.green-highlight .verse-text {
+  background-color: #bbf7d0;
+}
+
+.verse.blue-highlight .verse-text {
+  background-color: #bfdbfe;
+}
+
+.verse.pink-highlight .verse-text {
+  background-color: #fbcfe8;
+}
+
+.chapter-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.chapter-view {
+  line-height: 1.8;
+}
+
+.chapter-verse {
+  display: inline;
+  transition: all 0.3s ease;
+}
+
+.chapter-verse.search-highlight {
+  background-color: #fef3c7;
+  box-shadow: 0 0 0 3px #fbbf24;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.verse-number-inline {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.note-indicator {
+  display: inline-block;
+  color: #d97706;
+  cursor: help;
+}
