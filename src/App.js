@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Book, FileText, Split, X, Plus, Highlighter, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Book, FileText, Split, X, Highlighter, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BibleStudyApp = () => {
   const [bibleData, setBibleData] = useState([]);
@@ -20,15 +20,14 @@ const BibleStudyApp = () => {
   const pdfInputRef = useRef(null);
   const verseRefs = useRef({});
 
-  // Load saved data from storage
   useEffect(() => {
     loadStoredData();
   }, []);
 
   const loadStoredData = async () => {
     try {
-      const highlightsResult = await window.storage.get('bible-highlights');
-      const notesResult = await window.storage.get('bible-notes');
+      const highlightsResult = await localStorage.getItem('bible-highlights');
+      const notesResult = await localStorage.getItem('bible-notes');
       
       if (highlightsResult) setHighlights(JSON.parse(highlightsResult.value));
       if (notesResult) setNotes(JSON.parse(notesResult.value));
@@ -37,36 +36,31 @@ const BibleStudyApp = () => {
     }
   };
 
-  // Save highlights
   useEffect(() => {
     if (Object.keys(highlights).length > 0) {
-      window.storage.set('bible-highlights', JSON.stringify(highlights)).catch(console.error);
+      localStorage.setItem('bible-highlights', JSON.stringify(highlights));
     }
   }, [highlights]);
 
-  // Save notes
   useEffect(() => {
     if (Object.keys(notes).length > 0) {
-      window.storage.set('bible-notes', JSON.stringify(notes)).catch(console.error);
+      localStorage.setItem('bible-notes', JSON.stringify(notes));
     }
   }, [notes]);
 
-  // Parse Bible file
   const handleBibleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
       const text = await file.text();
-      const content = text;
-      const lines = content.split('\n').filter(line => line.trim());
+      const lines = text.split('\n').filter(line => line.trim());
       
-      // Skip header lines (translation info)
       const verses = lines.slice(2).map(line => {
-        const [reference, ...textParts] = line.split('\t');
-        const text = textParts.join('\t').trim();
+        const parts = line.split('\t');
+        const reference = parts[0];
+        const verseText = parts.slice(1).join('\t').trim();
         
-        // Parse reference: "Genesis 1:1"
         const match = reference.match(/^(.+?)\s+(\d+):(\d+)$/);
         if (match) {
           return {
@@ -74,7 +68,7 @@ const BibleStudyApp = () => {
             chapter: parseInt(match[2]),
             verse: parseInt(match[3]),
             reference,
-            text
+            text: verseText
           };
         }
         return null;
@@ -82,7 +76,6 @@ const BibleStudyApp = () => {
 
       setBibleData(verses);
       
-      // Extract unique books
       const uniqueBooks = [...new Set(verses.map(v => v.book))];
       setBooks(uniqueBooks);
       
@@ -95,7 +88,6 @@ const BibleStudyApp = () => {
     }
   };
 
-  // Handle PDF upload
   const handlePdfUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -105,7 +97,6 @@ const BibleStudyApp = () => {
     setSplitMode(true);
   };
 
-  // Search functionality
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -115,17 +106,15 @@ const BibleStudyApp = () => {
     const query = searchQuery.toLowerCase();
     const results = bibleData.filter(verse => 
       verse.text.toLowerCase().includes(query)
-    ).slice(0, 100); // Limit to 100 results
+    ).slice(0, 100);
 
     setSearchResults(results);
   };
 
-  // Get verses for a chapter
   const getChapterVerses = (book, chapter) => {
     return bibleData.filter(v => v.book === book && v.chapter === chapter);
   };
 
-  // Navigate chapters
   const navigateChapter = (panel, direction) => {
     const currentPanel = panel === 'left' ? leftPanel : rightPanel;
     const verses = bibleData.filter(v => v.book === currentPanel.book);
@@ -144,19 +133,14 @@ const BibleStudyApp = () => {
     } else {
       setRightPanel({ ...rightPanel, chapter: newChapter });
     }
-  };
-
-  // Handle text selection for highlighting
-  const handleTextSelection = (panel, verseRef) => {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
     
-    if (text) {
-      setSelectedText({ panel, text, verseRef });
-    }
+    setSearchHighlight(null);
   };
 
-  // Add highlight
+  const handleVerseClick = (panel, verseRef, verseText) => {
+    setSelectedText({ panel, text: verseText, verseRef });
+  };
+
   const addHighlight = (color) => {
     if (!selectedText.verseRef) return;
     
@@ -168,7 +152,6 @@ const BibleStudyApp = () => {
     setSelectedText({ panel: null, text: '', verseRef: '' });
   };
 
-  // Remove highlight
   const removeHighlight = (verseRef) => {
     setHighlights(prev => {
       const newHighlights = { ...prev };
@@ -177,7 +160,6 @@ const BibleStudyApp = () => {
     });
   };
 
-  // Add/edit note
   const saveNote = () => {
     if (!selectedText.verseRef) return;
     
@@ -191,7 +173,6 @@ const BibleStudyApp = () => {
     setSelectedText({ panel: null, text: '', verseRef: '' });
   };
 
-  // Delete note
   const deleteNote = (verseRef) => {
     setNotes(prev => {
       const newNotes = { ...prev };
@@ -200,11 +181,11 @@ const BibleStudyApp = () => {
     });
   };
 
-  // Render verse with highlighting
   const renderVerse = (verse, panel) => {
     const hasHighlight = highlights[verse.reference];
     const hasNote = notes[verse.reference];
     const isSearchHighlight = searchHighlight === verse.reference;
+    const isSelected = selectedText.verseRef === verse.reference && selectedText.panel === panel;
     
     const highlightStyle = {
       yellow: { backgroundColor: '#fef08a' },
@@ -223,11 +204,13 @@ const BibleStudyApp = () => {
           marginBottom: '8px',
           padding: '8px',
           borderRadius: '4px',
-          transition: 'background-color 0.3s ease',
+          transition: 'all 0.3s ease',
+          cursor: 'pointer',
+          border: isSelected ? '2px solid #2563eb' : '2px solid transparent',
           ...(isSearchHighlight ? { backgroundColor: '#fef3c7', boxShadow: '0 0 0 3px #fbbf24' } : {}),
           ...(hasHighlight && !isSearchHighlight ? highlightStyle[hasHighlight] : {})
         }}
-        onMouseUp={() => handleTextSelection(panel, verse.reference)}
+        onClick={() => handleVerseClick(panel, verse.reference, verse.text)}
       >
         <span style={{ fontWeight: '600', color: '#1d4ed8' }}>{verse.verse}</span>
         <span style={{ marginLeft: '8px' }}>{verse.text}</span>
@@ -242,7 +225,10 @@ const BibleStudyApp = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <p style={{ color: '#374151' }}>{notes[verse.reference]}</p>
               <button
-                onClick={() => deleteNote(verse.reference)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteNote(verse.reference);
+                }}
                 style={{
                   color: '#ef4444',
                   background: 'none',
@@ -260,7 +246,6 @@ const BibleStudyApp = () => {
     );
   };
 
-  // Render panel content
   const renderPanelContent = (panel) => {
     const panelData = panel === 'left' ? leftPanel : rightPanel;
     
@@ -284,7 +269,6 @@ const BibleStudyApp = () => {
           </div>
         );
       } else {
-        // Chapter mode - continuous text
         return (
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
@@ -293,6 +277,7 @@ const BibleStudyApp = () => {
             <div style={{ lineHeight: '1.8' }}>
               {verses.map(v => {
                 const isSearchHighlight = searchHighlight === v.reference;
+                const isSelected = selectedText.verseRef === v.reference && selectedText.panel === panel;
                 return (
                   <span 
                     key={v.reference}
@@ -302,32 +287,34 @@ const BibleStudyApp = () => {
                     style={{
                       display: 'inline',
                       transition: 'all 0.3s ease',
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: '4px',
+                      border: isSelected ? '2px solid #2563eb' : 'none',
                       ...(isSearchHighlight ? {
                         backgroundColor: '#fef3c7',
-                        boxShadow: '0 0 0 3px #fbbf24',
-                        padding: '2px 4px',
-                        borderRadius: '4px'
+                        boxShadow: '0 0 0 3px #fbbf24'
                       } : {})
                     }}
+                    onClick={() => handleVerseClick(panel, v.reference, v.text)}
                   >
-                  <sup style={{ color: '#2563eb', fontWeight: '600' }}>{v.verse}</sup>
-                  <span
+                    <sup style={{ color: '#2563eb', fontWeight: '600' }}>{v.verse}</sup>
+                    <span
                       style={{
                         ...(highlights[v.reference] && !isSearchHighlight ? 
-                      { backgroundColor: highlights[v.reference] === 'yellow' ? '#fef08a' :
-                                        highlights[v.reference] === 'green' ? '#bbf7d0' :
+                          { backgroundColor: highlights[v.reference] === 'yellow' ? '#fef08a' :
+                                            highlights[v.reference] === 'green' ? '#bbf7d0' :
                                             highlights[v.reference] === 'blue' ? '#bfdbfe' : '#fbcfe8' } : {})
                       }}
-                    onMouseUp={() => handleTextSelection(panel, v.reference)}
-                  >
-                    {v.text}
-                  </span>{' '}
-                  {notes[v.reference] && (
-                    <span style={{ display: 'inline-block' }}>
-                      <span style={{ color: '#d97706' }} title={notes[v.reference]}>📝</span>
-                    </span>
-                  )}
-                </span>
+                    >
+                      {v.text}
+                    </span>{' '}
+                    {notes[v.reference] && (
+                      <span style={{ display: 'inline-block' }}>
+                        <span style={{ color: '#d97706' }} title={notes[v.reference]}>📝</span>
+                      </span>
+                    )}
+                  </span>
                 );
               })}
             </div>
@@ -471,7 +458,6 @@ const BibleStudyApp = () => {
             </div>
           </div>
           
-          {/* Search Results / Book Selection */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {searchResults.length > 0 ? (
               <div style={{ padding: '8px' }}>
@@ -487,7 +473,6 @@ const BibleStudyApp = () => {
                       setSearchResults([]);
                       setSearchQuery('');
                       
-                      // Scroll to verse after a short delay to allow rendering
                       setTimeout(() => {
                         const element = verseRefs.current[verse.reference];
                         if (element) {
@@ -523,7 +508,10 @@ const BibleStudyApp = () => {
                 {books.map(book => (
                   <button
                     key={book}
-                    onClick={() => setLeftPanel({ ...leftPanel, type: 'bible', book, chapter: 1 })}
+                    onClick={() => {
+                      setLeftPanel({ ...leftPanel, type: 'bible', book, chapter: 1 });
+                      setSearchHighlight(null);
+                    }}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -550,11 +538,10 @@ const BibleStudyApp = () => {
           </div>
         </div>
         
-        {/* Main Content Area */}
         <div style={{ flex: 1, display: 'flex' }}>
           <div style={{ width: splitMode ? '50%' : '100%', display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
             {leftPanel.book && (
-              <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <select
                     value={leftPanel.book}
@@ -621,7 +608,7 @@ const BibleStudyApp = () => {
                   </button>
                 </div>
                 
-                {selectedText.panel === 'left' && selectedText.text && (
+                {selectedText.panel === 'left' && selectedText.verseRef && (
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       onClick={() => addHighlight('yellow')}
@@ -714,7 +701,6 @@ const BibleStudyApp = () => {
             </div>
           </div>
 
-          {/* Right Panel */}
           {splitMode && (
             <div style={{ width: '50%', display: 'flex', flexDirection: 'column', backgroundColor: 'white', borderLeft: '1px solid #e5e7eb' }}>
               {rightPanel.type === 'bible' && rightPanel.book && (
@@ -811,7 +797,7 @@ const BibleStudyApp = () => {
                       border: 'none',
                       backgroundColor: 'transparent',
                       borderRadius: '4px',
-                      cursor: 'pointer'
+                      cursor: 'pointer'                   
                     }}
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
